@@ -214,52 +214,52 @@ def load_rag_pipeline():
     data
 ):
 
-    prompt = f"""
-You are the HR Help Desk assistant for Zyro Dynamics.
+        prompt = f"""
+    You are the HR Help Desk assistant for Zyro Dynamics.
+    
+    Answer the employee's question using ONLY the HR policy
+    information provided in the context.
+    
+    Rules:
+    - Give a clear and concise answer.
+    - Do not invent information.
+    - Do not use outside knowledge.
+    - Base the answer only on the provided HR policy context.
+    - If the context does not contain enough information to answer,
+      politely say that the information is not available in the HR
+      policy documents.
+    - For questions unrelated to Zyro Dynamics HR policies, politely
+      state that you can only help with Zyro Dynamics HR policy queries.
+    
+        Context:
+    {data["context"]}
+    
+    Employee question:
+    {data["question"]}
+    
+    Answer:
+    """
+    
+        response = None
 
-Answer the employee's question using ONLY the HR policy
-information provided in the context.
+        for attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-3.8-flash",
+                    contents=prompt
+                )
+                break
+    
+            except Exception as e:
+                if "503" in str(e) and attempt < 2:
+                    time.sleep(5)
+                else:
+                    raise
 
-Rules:
-- Give a clear and concise answer.
-- Do not invent information.
-- Do not use outside knowledge.
-- Base the answer only on the provided HR policy context.
-- If the context does not contain enough information to answer,
-  politely say that the information is not available in the HR
-  policy documents.
-- For questions unrelated to Zyro Dynamics HR policies, politely
-  state that you can only help with Zyro Dynamics HR policy queries.
-
-Context:
-{data["context"]}
-
-Employee question:
-{data["question"]}
-
-Answer:
-"""
-
-    response = None
-
-    for attempt in range(3):
-        try:
-            response = client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=prompt
-            )
-            break
-
-        except Exception as e:
-            if "503" in str(e) and attempt < 2:
-                time.sleep(5)
-            else:
-                raise
-
-    return {
-        "answer": response.text.strip(),
-        "sources": data["sources"]
-    }
+        return {
+            "answer": response.text.strip(),
+            "sources": data["sources"]
+        }
     # LCEL RAG chain
     rag_chain = (
         RunnableLambda(
