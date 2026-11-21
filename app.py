@@ -210,13 +210,11 @@ def load_rag_pipeline():
             "context": context,
             "sources": unique_sources
         }
-
-
     def generate_grounded_answer(
-        data
-    ):
+    data
+):
 
-        prompt = f"""
+    prompt = f"""
 You are the HR Help Desk assistant for Zyro Dynamics.
 
 Answer the employee's question using ONLY the HR policy
@@ -242,29 +240,26 @@ Employee question:
 Answer:
 """
 
-response = None
+    response = None
 
-for attempt in range(3):
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt
-        )
-        break
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=prompt
+            )
+            break
 
-    except Exception as e:
-        if "503" in str(e) and attempt < 2:
-            time.sleep(5)
-        else:
-            raise
+        except Exception as e:
+            if "503" in str(e) and attempt < 2:
+                time.sleep(5)
+            else:
+                raise
 
-
-        return {
-            "answer": response.text.strip(),
-            "sources": data["sources"]
-        }
-
-
+    return {
+        "answer": response.text.strip(),
+        "sources": data["sources"]
+    }
     # LCEL RAG chain
     rag_chain = (
         RunnableLambda(
